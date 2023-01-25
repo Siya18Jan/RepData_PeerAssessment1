@@ -1,25 +1,68 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Course project 1"
+author: "Siya He"
+date: "2023/1/24"
+output: html_document
 ---
+##Loading and preprocessing the data
+```{r simulatedata, echo=TRUE}
+Activity <- read.csv("./activity.csv")
+Activity <- na.omit(Activity)
+```
+##Plotting total steps taken per day
+```{r scatterplot}
+Totalstep <- tapply(Activity$steps, Activity$date, sum)
+hist(Totalstep)
+```
+## the mean
+```{r}
+mean(Totalstep)
+```
+## the median
+```{r}
+median(Totalstep)
+```
+##What is the average daily activity pattern?
+```{r}
+pattern <- aggregate(steps ~ interval, data = Activity, FUN = mean, na.rm = TRUE)
+plot(pattern$interval, pattern$steps)
+```
+##Max
+```{r}
+pattern$interval[which.max(pattern$steps)]
+```
+##Imputing missing values
+```{r}
+Activity2 <- Activity
+addmiss <- function(mystep, myinterval){
+  if(is.na(mystep))
+    newvalue <- pattern$steps[which(pattern$interval == myinterval)]
+  else
+    newvalue <- mystep
+  return(newvalue)
+}
+Activity2$steps <- mapply(addmiss, Activity2$steps, pattern$interval)
+summary(Activity2)
+```
+##Make a histogram
+```{r}
+hist(tapply(Activity2$steps, Activity2$date, sum))
+
+```
+##Differences in activity patterns between weekdays and weekends
+```{r}
+Activity2$date <- as.Date(Activity2$date)
+library(ggplot2)
+isweekday <- function(idate){
+  if(weekdays(idate) %in%c("Sunday", "Saturday"))
+    return("weekend")
+  else
+    return("weekday")
+}
+Activity2$datetype <- mapply(isweekday, Activity2$date)
+ggplot(Activity2) + geom_point(aes(x = interval, y = steps))
+```
 
 
-## Loading and preprocessing the data
 
 
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
